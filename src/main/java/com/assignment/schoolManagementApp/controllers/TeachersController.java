@@ -8,8 +8,8 @@ import com.assignment.schoolManagementApp.repositories.TeacherRepository;
 import com.assignment.schoolManagementApp.service.TeachersService;
 import com.assignment.schoolManagementApp.utils.CommonUtil;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -56,6 +56,38 @@ public class TeachersController {
         model.addAttribute("teacherList", teachersList);
         model.addAttribute("search",search);
         return "teachers/index";
+    }
+    @GetMapping("/{offset}/{pageSize}")
+    public String findByPagination(Model model, @PathVariable int offset,@PathVariable int pageSize){
+
+        Search search = new Search();
+        Page<Teachers> teachers = teachersService.findByPagination(offset,pageSize);
+        model.addAttribute("teacherList", teachers.getContent());
+        model.addAttribute("search",search);
+
+        return "teachers/index";
+
+    }
+
+    @PostMapping("/{offset}/{pageSize}")
+    public String findByPaginationAndSearch(Model model,@ModelAttribute Search search, @PathVariable int offset,@PathVariable int pageSize,BindingResult result){
+
+        Page<Teachers> teachers = teachersService.findByPagination(offset,pageSize);
+        model.addAttribute("teacherList", teachers.getContent());
+        model.addAttribute("search",search);
+
+        if (result.hasErrors()){
+            return "teachers/index";
+        }
+
+        if (!search.getKeywoard().isEmpty()){
+            List<Teachers> teachersList = teachersService.searchTeacher(search.getKeywoard());
+            model.addAttribute("teacherList", teachersList);
+        }
+
+
+        return "teachers/index";
+
     }
 
     @GetMapping("/add")
@@ -244,5 +276,23 @@ public class TeachersController {
         }
         GenericRs response = CommonUtil.isSuccess(teachersList);
         return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+    @PostMapping("/findPagination")
+    public ResponseEntity findByPaginationJSON(@RequestParam int offset,@RequestParam int pageSize){
+
+        Page<Teachers> result = teachersService.findByPagination(offset,pageSize);
+        GenericRs response = CommonUtil.isSuccess(result.getContent());
+
+        return new ResponseEntity<>(response,HttpStatus.ACCEPTED);
+
+    }
+    @PostMapping("/findPaginationAndSort")
+    public ResponseEntity findByPaginationAndSortJSON(@RequestParam int offset,@RequestParam int pageSize,@RequestParam String field){
+
+        Page<Teachers> result = teachersService.findByPaginationAndSort(offset,pageSize,field);
+        GenericRs response = CommonUtil.isSuccess(result.getContent());
+
+        return new ResponseEntity<>(response,HttpStatus.ACCEPTED);
+
     }
 }

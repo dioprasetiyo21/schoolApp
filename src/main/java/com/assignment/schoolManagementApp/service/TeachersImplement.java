@@ -4,6 +4,9 @@ import com.assignment.schoolManagementApp.models.Teachers;
 import com.assignment.schoolManagementApp.models.TeachersDto;
 import com.assignment.schoolManagementApp.repositories.TeacherRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -96,5 +99,17 @@ public class TeachersImplement implements TeachersService{
         List<Teachers> result = teacherRepository.searchTeacher(keyword);
 
         return result;
+    }
+
+    @Override
+    public Page<Teachers> findByPagination(int offset, int pageSize) {
+        Page<Teachers> tacher = teacherRepository.findAll(PageRequest.of(offset,pageSize));
+        return tacher;
+    }
+
+    @Override
+    public Page<Teachers> findByPaginationAndSort(int offset, int pageSize, String field) {
+        Page<Teachers> tacher = teacherRepository.findAll(PageRequest.of(offset,pageSize).withSort(Sort.by(field)));
+        return tacher;
     }
 }
